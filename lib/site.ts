@@ -7,8 +7,8 @@ export const site = {
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://limit-orders.0xo.in",
   github: "https://github.com/Jagadeeshftw/saucerswap-limit-orders",
   docsRepo: "https://github.com/Jagadeeshftw/saucerswap-limit-orders-docs",
-  /** The template's frontend on Hedera testnet (Vercel project saucerswap-limit-orders-demo, built from main). */
-  liveDemo: process.env.NEXT_PUBLIC_LIVE_DEMO_URL || "https://saucerswap-limit-orders-demo.vercel.app",
+  /** The template's frontend on Hedera testnet (limit-orders-demo.0xo.in: Vercel project saucerswap-limit-orders-demo, built from main). */
+  liveDemo: process.env.NEXT_PUBLIC_LIVE_DEMO_URL || "https://limit-orders-demo.0xo.in",
   createCommand: "npm create scaffold-hbar@latest my-app -- --template Jagadeeshftw/saucerswap-limit-orders",
   source: sourceInfo,
 };
