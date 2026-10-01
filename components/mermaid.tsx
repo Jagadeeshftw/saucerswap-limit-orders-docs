@@ -1,33 +1,26 @@
 import diagrams from "@/content/diagrams.json";
 
-type Rendered = { light: string; dark: string; source: string };
+type Diagram = { width: number; height: number; alt: string };
 
 /** Never draw a diagram below this fraction of its natural size; wider ones scroll sideways instead. */
 const MIN_SCALE = 0.72;
 
-/** Size the SVG from its viewBox: fill the column, but scroll rather than shrink text past MIN_SCALE. */
-function sized(svg: string) {
-  const vb = svg.match(/viewBox="[-\d.]+ [-\d.]+ ([\d.]+) ([\d.]+)"/);
-  const w = vb ? Number(vb[1]) : 800;
-  const h = vb ? Number(vb[2]) : 400;
-  const style = `width:100%;height:auto;max-width:${w}px;min-width:${Math.round(w * MIN_SCALE)}px;aspect-ratio:${w}/${h}`;
-  return (
-    svg
-      .replace(/^<svg([^>]*?) width="100%"/, "<svg$1")
-      .replace(/^<svg([^>]*?) style="max-width: [\d.]+px;"/, `<svg$1 style="${style}"`)
-      // The SVG measured its text in Montserrat; draw it in the page's copy of the same font.
-      .replaceAll("Montserrat, ui-sans-serif", "var(--font-montserrat), Montserrat, ui-sans-serif")
-  );
-}
-
-/** A Mermaid diagram from the source docs, pre-rendered to SVG for each theme by scripts/sync-docs.mjs. */
+/**
+ * A Mermaid diagram from the source docs, pre-rendered by scripts/sync-docs.mjs to one SVG file per theme.
+ * Both are lazy images; the hidden theme's is never fetched.
+ */
 export function Mermaid({ hash }: { hash: string }) {
-  const d = (diagrams as Record<string, Rendered>)[hash];
+  const d = (diagrams as Record<string, Diagram>)[hash];
   if (!d) throw new Error(`diagram ${hash} was not rendered; run scripts/sync-docs.mjs`);
+  const style = { width: "100%", height: "auto", maxWidth: d.width, minWidth: Math.round(d.width * MIN_SCALE) };
+  const img = (theme: "light" | "dark", className: string) => (
+    // eslint-disable-next-line @next/next/no-img-element -- a static SVG; next/image would add nothing
+    <img src={`/diagrams/${hash}-${theme}.svg`} alt={d.alt} width={d.width} height={d.height} loading="lazy" decoding="async" className={className} style={style} />
+  );
   return (
-    <figure className="mermaid not-prose my-6 overflow-x-auto rounded-xl border bg-fd-card p-4" data-diagram={hash} tabIndex={0} aria-label="Diagram (scrolls sideways)">
-      <div className="dark:hidden" dangerouslySetInnerHTML={{ __html: sized(d.light) }} />
-      <div className="hidden dark:block" dangerouslySetInnerHTML={{ __html: sized(d.dark) }} />
+    <figure className="mermaid not-prose my-6 overflow-x-auto rounded-xl border bg-fd-card p-4" data-diagram={hash}>
+      {img("light", "mx-auto dark:hidden")}
+      {img("dark", "mx-auto hidden dark:block")}
     </figure>
   );
 }

@@ -1,5 +1,7 @@
 import { defineConfig, defineDocs, frontmatterSchema, metaSchema } from "fumadocs-mdx/config";
 import { z } from "zod";
+import { rehypeCodeDefaultOptions } from "fumadocs-core/mdx-plugins";
+import type { ShikiTransformer } from "shiki";
 import { remarkMermaid } from "./lib/remark-mermaid.mjs";
 
 /**
@@ -20,11 +22,22 @@ export const docs = defineDocs({
   meta: { schema: metaSchema },
 });
 
+/** GitHub's themes draw comments at 3.6:1 on our code background; lift them to WCAG AA (4.5:1) in both modes. */
+const readableComments: ShikiTransformer = {
+  name: "readable-comments",
+  span(node) {
+    const style = node.properties.style;
+    if (typeof style === "string")
+      node.properties.style = style.replace(/--shiki-light:#6a737d/i, "--shiki-light:#57606a").replace(/--shiki-dark:#6a737d/i, "--shiki-dark:#959da5");
+  },
+};
+
 export default defineConfig({
   mdxOptions: {
     remarkPlugins: [remarkMermaid],
     rehypeCodeOptions: {
       themes: { light: "github-light", dark: "github-dark" },
+      transformers: [...(rehypeCodeDefaultOptions.transformers ?? []), readableComments],
     },
   },
 });

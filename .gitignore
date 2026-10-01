@@ -32,3 +32,5 @@ next-env.d.ts
 /public/source/
 /screenshots/
 /.lighthouse/
+.env*
+/public/diagrams/

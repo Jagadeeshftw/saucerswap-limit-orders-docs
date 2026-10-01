@@ -13,7 +13,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { ROOT, PIN, SRC, repoWeb, fetchPinned, cutPages, pageFile, mermaidBlocks, groups } from "./lib/pages.mjs";
-import { renderDiagrams } from "./lib/mermaid.mjs";
+import { renderDiagrams, writeDiagramFiles } from "./lib/mermaid.mjs";
 
 const OUT = path.join(ROOT, "content/docs");
 const ASSETS = path.join(ROOT, "public/source");
@@ -39,7 +39,7 @@ fs.mkdirSync(ASSETS, { recursive: true });
 for (const a of assets) fs.copyFileSync(path.join(SRC, a), path.join(ASSETS, path.posix.basename(a)));
 
 const rendered = await renderDiagrams(pages.flatMap((p) => mermaidBlocks(p.body)));
-fs.writeFileSync(path.join(ROOT, "content/diagrams.json"), JSON.stringify(rendered) + "\n");
+fs.writeFileSync(path.join(ROOT, "content/diagrams.json"), JSON.stringify(writeDiagramFiles(rendered, path.join(ROOT, "public/diagrams")), null, 1) + "\n");
 
 // The testnet vault on HashScan, as the README's "See it work on testnet" names it.
 const vault = readmeSections.find((s) => s.heading === "See it work on testnet")?.body.match(/\]\((https:\/\/hashscan\.io\/testnet\/contract\/[^)]+)\)/)?.[1];

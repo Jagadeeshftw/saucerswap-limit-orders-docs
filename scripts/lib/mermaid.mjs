@@ -84,6 +84,54 @@ export function diagramHash(code) {
 }
 
 const cachePath = (hash) => path.join(CACHE, `${hash}.json`);
+const woff = (w) => fs.readFileSync(require.resolve(`@fontsource/montserrat/files/montserrat-latin-${w}-normal.woff2`)).toString("base64");
+
+/**
+ * Write each diagram as a standalone SVG file per theme (served as a lazy <img>, so pages carry no SVG markup),
+ * with the Montserrat it was measured in embedded, since an SVG image cannot use the page's fonts.
+ * Returns { hash: { width, height, alt } }.
+ */
+export function writeDiagramFiles(rendered, dir) {
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.mkdirSync(dir, { recursive: true });
+  const fontCss = [400, 600].map((w) => `@font-face{font-family:Montserrat;font-weight:${w};src:url(data:font/woff2;base64,${woff(w)}) format("woff2")}`).join("");
+  const out = {};
+  for (const [hash, d] of Object.entries(rendered)) {
+    const vb = d.light.match(/viewBox="([-\d.]+) ([-\d.]+) ([\d.]+) ([\d.]+)"/);
+    const width = Math.ceil(Number(vb[3]));
+    const height = Math.ceil(Number(vb[4]));
+    for (const theme of ["light", "dark"]) {
+      const svg = d[theme]
+        .replace(/^<svg([^>]*?) width="100%"/, `<svg$1 width="${width}" height="${height}"`)
+        .replace(/^<svg([^>]*?) style="max-width: [\d.]+px;"/, "<svg$1")
+        .replace(/^(<svg[^>]*>)/, `$1<style>${fontCss}</style>`);
+      fs.writeFileSync(path.join(dir, `${hash}-${theme}.svg`), svg);
+    }
+    out[hash] = { width, height, alt: describeDiagram(d.source) };
+  }
+  return out;
+}
+
+/** Alt text from the diagram source: its kind and the names in it. */
+export function describeDiagram(code) {
+  const lines = code.split("\n").map((l) => l.trim());
+  const kind = lines[0].split(/\s/)[0];
+  const names = new Set();
+  if (kind === "sequenceDiagram") {
+    for (const l of lines) {
+      const m = l.match(/^(?:participant|actor)\s+(\S+)(?:\s+as\s+(.+))?$/);
+      if (m) names.add(m[2] ?? m[1]);
+    }
+    return `Sequence diagram between ${[...names].join(", ")}.`;
+  }
+  if (kind === "stateDiagram-v2" || kind === "stateDiagram") {
+    for (const l of lines) for (const m of l.matchAll(/(\w+)\s*-->\s*(\w+)/g)) (names.add(m[1]), names.add(m[2]));
+    names.delete("*");
+    return `State diagram of ${[...names].join(", ")}.`;
+  }
+  for (const l of lines) for (const m of l.matchAll(/\w+\s*(?:\[\(?|\(\[?|\{\{?)"?([^\]\)\}"]+)"?/g)) names.add(m[1].trim());
+  return `Diagram of ${[...names].join(", ")}.`;
+}
 
 /** Render every diagram not yet cached. Returns { hash: { light, dark } } for all of them. */
 export async function renderDiagrams(codes) {
@@ -107,7 +155,6 @@ async function renderMissing(codes) {
   });
   try {
     const page = await browser.newPage();
-    const woff = (w) => fs.readFileSync(require.resolve(`@fontsource/montserrat/files/montserrat-latin-${w}-normal.woff2`)).toString("base64");
     await page.setContent(`<!doctype html><html><head><style>
       @font-face{font-family:Montserrat;font-weight:400;src:url(data:font/woff2;base64,${woff(400)}) format("woff2")}
       @font-face{font-family:Montserrat;font-weight:600;src:url(data:font/woff2;base64,${woff(600)}) format("woff2")}
