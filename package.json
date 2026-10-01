@@ -1,0 +1,49 @@
+{
+  "name": "saucerswap-limit-orders-docs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "sync": "node scripts/sync-docs.mjs",
+    "dev": "node scripts/sync-docs.mjs && next dev",
+    "build": "node scripts/sync-docs.mjs && next build && node scripts/check-drift.mjs && node scripts/check-links.mjs",
+    "start": "next start",
+    "check": "node scripts/check-drift.mjs && node scripts/check-links.mjs",
+    "screenshots": "node scripts/screenshots.mjs",
+    "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "fumadocs-core": "16.15.17",
+    "fumadocs-mdx": "15.4.5",
+    "fumadocs-ui": "npm:@fumadocs/base-ui@16.15.17",
+    "github-slugger": "2.0.0",
+    "lucide-react": "^1.47.0",
+    "mdast-util-to-string": "4.0.0",
+    "next": "16.3.5",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remark-gfm": "4.0.1",
+    "remark-parse": "11.0.0",
+    "unified": "11.0.5",
+    "unist-util-visit": "5.1.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@fontsource/montserrat": "5.3.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/mdx": "^2.0.14",
+    "@types/node": "^26.6.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "16.3.5",
+    "mermaid": "12.0.0",
+    "playwright": "1.63.0",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^4.3.3",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=20.18"
+  }
+}

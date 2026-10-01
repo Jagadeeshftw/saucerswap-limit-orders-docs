@@ -1,0 +1,95 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+
+@theme inline {
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* The approved palette: violet brand on white / near-black, as in the design. */
+:root {
+  --color-fd-background: #ffffff;
+  --color-fd-foreground: #14151b;
+  --color-fd-muted: #f7f7fa;
+  --color-fd-muted-foreground: #5a5d6b;
+  --color-fd-popover: #ffffff;
+  --color-fd-popover-foreground: #14151b;
+  --color-fd-card: #f7f7fa;
+  --color-fd-card-foreground: #14151b;
+  --color-fd-border: #e7e7ee;
+  --color-fd-primary: #6d4aff;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #f4f3fb;
+  --color-fd-secondary-foreground: #14151b;
+  --color-fd-accent: #efeafe;
+  --color-fd-accent-foreground: #5b36f0;
+  --color-fd-ring: #6d4aff;
+}
+
+.dark {
+  --color-fd-background: #111219;
+  --color-fd-foreground: #eceef4;
+  --color-fd-muted: #171922;
+  --color-fd-muted-foreground: #9a9db0;
+  --color-fd-popover: #14151c;
+  --color-fd-popover-foreground: #eceef4;
+  --color-fd-card: #171922;
+  --color-fd-card-foreground: #eceef4;
+  --color-fd-border: #262836;
+  --color-fd-primary: #a48bff;
+  --color-fd-primary-foreground: #12121a;
+  --color-fd-secondary: #181a24;
+  --color-fd-secondary-foreground: #eceef4;
+  --color-fd-accent: #221d3a;
+  --color-fd-accent-foreground: #c4b5ff;
+  --color-fd-ring: #a48bff;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-fd-background);
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+/* No motion beyond hover colour changes. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.mermaid svg {
+  margin-inline: auto;
+}
+
+/* Sidebar group labels, as in the design: small, uppercase, dim. */
+aside p.inline-flex.mb-1\.5 {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-fd-muted-foreground);
+}
+
+/* Body copy a touch smaller than Fumadocs' default: Montserrat sets wide. */
+.prose {
+  font-size: 0.95rem;
+}
+
+/* Contract reference: function and type headings read as code. */
+.prose h4[id] {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
