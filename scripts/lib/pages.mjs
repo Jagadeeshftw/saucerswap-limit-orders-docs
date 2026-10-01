@@ -8,8 +8,7 @@ import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
 import { toString } from "mdast-util-to-string";
-import { groups, unmapped, reference } from "../../content.map.mjs";
-import { renderReference } from "./reference.mjs";
+import { groups, unmapped } from "../../content.map.mjs";
 
 export const ROOT = path.resolve(import.meta.dirname, "../..");
 export const PIN = JSON.parse(fs.readFileSync(path.join(ROOT, "docs.source.json"), "utf8"));
@@ -22,8 +21,8 @@ export function git(args, cwd = SRC) {
 }
 
 /**
- * Fetch exactly the pinned ref into .cache/source: shallow, blobless, with only docs/, README.md and the
- * contracts checked out (the full tree listing is still there, for link checks). DOCS_SOURCE_REMOTE overrides
+ * Fetch exactly the pinned ref into .cache/source: shallow, blobless, with only docs/ and README.md checked out
+ * (the full tree listing is still there, for link checks). DOCS_SOURCE_REMOTE overrides
  * where it is fetched from, e.g. a local clone for a ref not pushed yet; the ref is the same either way.
  */
 export function fetchPinned() {
@@ -32,7 +31,7 @@ export function fetchPinned() {
   fs.rmSync(SRC, { recursive: true, force: true });
   fs.mkdirSync(SRC, { recursive: true });
   git(["init", "-q"]);
-  git(["sparse-checkout", "set", "--no-cone", "/docs/", "/README.md", "/packages/foundry/contracts/"]);
+  git(["sparse-checkout", "set", "--no-cone", "/docs/", "/README.md"]);
   try {
     git(["fetch", "-q", "--depth", "1", "--filter=blob:none", remote, PIN.ref]);
   } catch (e) {
@@ -77,7 +76,7 @@ export function readmeParts() {
 
 /**
  * Cut every page out of the checkout, as content.map.mjs says. Each page: { url, dir, slug, nav, title, body,
- * sources: [{ path, heading?, body?, generated? }], sourcePath, sourceUrl, description }. `body` is final:
+ * sources: [{ path, heading?, body }], sourcePath, sourceUrl, description }. `body` is final:
  * source text byte for byte, with only repo-relative link targets pointed at the site.
  */
 export function cutPages() {
@@ -111,9 +110,6 @@ export function cutPages() {
           body = parts.map((s) => (s.heading ? `## ${s.heading}\n\n${s.body}` : s.body)).join("\n");
         }
         for (const s of parts) sources.push({ path: "README.md", heading: s.heading, body: s.body });
-      } else if (p.generate === "natspec") {
-        body = renderReference(reference.include.map((f) => ({ path: f, source: read(f) })), (f) => blob(f));
-        sources.push(...reference.include.map((f) => ({ path: f, generated: "natspec" })));
       } else throw new Error(`${url}: page has no source`);
       pages.push({ url, dir: g.dir, slug: p.slug, nav: p.nav, title, body, sources });
     }
@@ -121,14 +117,11 @@ export function cutPages() {
   const links = linkResolver(pages);
   for (const p of pages) {
     const from = p.sources[0];
-    if (!from.generated) p.body = links.rewrite(p.body, from.path);
-    p.sourcePath = from.generated ? "packages/foundry/contracts (NatSpec)" : from.path;
-    p.sourceUrl = from.generated
-      ? `${repoWeb}/tree/${PIN.ref}/packages/foundry/contracts`
-      : from.path === "README.md" && from.heading
-        ? blob("README.md", `#${new GithubSlugger().slug(from.heading)}`)
-        : blob(from.path);
-    p.description = from.generated ? describeReference() : describe(p.sources.map((s) => s.body).join("\n"));
+    p.body = links.rewrite(p.body, from.path);
+    p.sourcePath = from.path;
+    p.sourceUrl =
+      from.path === "README.md" && from.heading ? blob("README.md", `#${new GithubSlugger().slug(from.heading)}`) : blob(from.path);
+    p.description = describe(p.sources.map((s) => s.body).join("\n"));
   }
   return { pages, assets: links.assets, readmeSections: sections };
 }
@@ -139,7 +132,6 @@ function linkResolver(pages) {
   const readmeAnchorUrl = new Map();
   for (const p of pages)
     for (const s of p.sources) {
-      if (s.generated) continue;
       if (s.path !== "README.md") fileUrl.set(s.path, p.url);
       else if (s.heading === null) fileUrl.set("README.md", p.url);
       else {
@@ -200,11 +192,6 @@ function describe(body) {
   return cut.slice(0, cut.lastIndexOf(" ")).replace(/[,;:]$/, "") + "…";
 }
 
-function describeReference() {
-  const names = reference.include.map((f) => path.posix.basename(f, ".sol"));
-  return `Functions, events, errors and types of ${names.slice(0, -1).join(", ")} and ${names.at(-1)}, generated from their NatSpec at ${PIN.ref}.`;
-}
-
 /** The frontmatter + body written for a page. */
 export function pageFile(p) {
   const fm = {
@@ -226,4 +213,4 @@ export function pageFile(p) {
 }
 
 export const mermaidBlocks = (body) => [...body.matchAll(/^```mermaid\n([\s\S]*?)\n```$/gm)].map((m) => m[1]);
-export { groups, unmapped, reference };
+export { groups, unmapped };

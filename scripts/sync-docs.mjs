@@ -7,9 +7,8 @@
 // 2. Cut each page out of its source as content.map.mjs says (scripts/lib/pages.mjs). The text is kept byte for
 //    byte; a page's own H1 (or a single README section's heading) becomes its title, and repo-relative link
 //    targets point at the site page or at the file on GitHub at the pinned ref.
-// 3. The Contract API page is generated from the contracts' NatSpec.
-// 4. Mermaid diagrams are rendered to SVG (cached in diagrams/).
-// 5. content/source.json records the resolved commit and what each page was cut from.
+// 3. Mermaid diagrams are rendered to SVG (cached in diagrams/).
+// 4. content/source.json records the resolved commit and what each page was cut from.
 import fs from "node:fs";
 import path from "node:path";
 import { ROOT, PIN, SRC, repoWeb, fetchPinned, cutPages, pageFile, mermaidBlocks, groups } from "./lib/pages.mjs";

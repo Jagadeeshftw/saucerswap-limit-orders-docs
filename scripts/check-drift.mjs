@@ -1,11 +1,12 @@
 // Drift check, run after `next build`. Fails the build when the site's content is not the template repo's
-// docs/ (plus the README sections and contracts it maps) at the pinned ref.
+// docs/ (plus the README sections it maps) at the pinned ref.
 //
 //   node scripts/check-drift.mjs            check .cache/source, content/docs and the built pages
 //   node scripts/check-drift.mjs --remote   also check that the pinned ref has not moved since this build
 //
-// 1. Coverage: every file in docs/, every "## " section of the README and every contract is either on the site
-//    or deliberately left off (content.map.mjs). A new doc fails the build until it is placed.
+// 1. Coverage: every file in docs/ and every "## " section of the README is either on the site or deliberately
+//    left off (content.map.mjs). A new doc fails the build until it is placed. The Contract API is
+//    docs/CONTRACT-API.md, which the template repo generates from NatSpec and keeps fresh in its own CI.
 // 2. Pages: each generated page equals a fresh cut of the checkout, byte for byte (no hand edits, no stale files).
 // 3. Rendering: each built page shows every heading, paragraph, list item, table cell and code block of its
 //    source, every Mermaid diagram, and the source commit. Anything the renderer drops fails here.
@@ -13,8 +14,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { visit } from "unist-util-visit";
 import { toString } from "mdast-util-to-string";
-import { ROOT, PIN, git, checkout, treePaths, readmeParts, cutPages, pageFile, mermaidBlocks, mdParser, read, groups, unmapped, reference } from "./lib/pages.mjs";
-import { referenceFragments } from "./lib/reference.mjs";
+import { ROOT, PIN, git, checkout, treePaths, readmeParts, cutPages, pageFile, mermaidBlocks, mdParser, groups, unmapped } from "./lib/pages.mjs";
 import { diagramHash } from "./lib/mermaid.mjs";
 
 const findings = [];
@@ -38,9 +38,6 @@ const headings = new Set(sections.map((s) => s.heading));
 for (const h of headings) if (!mappedSections.has(h) && !unmapped.readme.includes(h)) fail(`README section "## ${h}" is not on the site: map it in content.map.mjs (or list it in unmapped.readme)`);
 for (const h of [...mappedSections, ...unmapped.readme]) if (!headings.has(h)) fail(`README section "## ${h}" is mapped in content.map.mjs but the README at ${PIN.ref} has no such section`);
 
-const contracts = [...tree].filter((p) => p.startsWith("packages/foundry/contracts/") && p.endsWith(".sol"));
-for (const c of contracts) if (!reference.include.includes(c) && !reference.exclude.includes(c)) fail(`${c} is neither in the Contract API nor excluded from it (content.map.mjs reference)`);
-for (const c of [...reference.include, ...reference.exclude]) if (!tree.has(c)) fail(`${c} is listed in content.map.mjs reference but is not in the repo at ${PIN.ref}`);
 
 /* ---------------------------------------------------------------- 2. pages */
 
@@ -75,8 +72,6 @@ const visibleText = (html) =>
 const squash = (s) => s.replace(/\s+/g, "");
 
 function sourceFragments(p) {
-  if (p.sources[0].generated)
-    return referenceFragments(reference.include.map((f) => ({ path: f, source: read(f) }))).map((f) => (f.md ? toString(mdParser.parse(f.text)) : f.text));
   const frags = [];
   for (const s of p.sources) {
     if (s.heading) frags.push(s.heading);
@@ -129,5 +124,5 @@ if (findings.length) {
 const docsCount = [...tree].filter((p) => p.startsWith("docs/")).length;
 console.log(
   `drift check passed: ${pages.length} pages = ${PIN.ref} (${info.sha.slice(0, 7)}); ${checked} source blocks found in the built pages; ` +
-    `all ${docsCount} docs/ files, ${headings.size} README sections and ${contracts.length} contracts accounted for`,
+    `all ${docsCount} docs/ files and ${headings.size} README sections accounted for`,
 );

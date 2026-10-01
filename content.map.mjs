@@ -6,7 +6,6 @@
 //   { readme: [sections] }   README.md sections by their exact "## " heading, in order. One section: its heading
 //                            is the page title. Several: `title` names the page and each keeps its heading.
 //                            `null` is the README's opening (everything between the H1 and the first "## ").
-//   { generate: "natspec" }  the contract reference, generated from the NatSpec in packages/foundry/contracts
 // `nav` is the sidebar label when it differs from the title.
 //
 // The drift check fails the build when docs/ or the README gains a file or section that is neither mapped here
@@ -41,6 +40,7 @@ export const groups = [
     title: "Extend",
     pages: [
       { slug: "order-types", nav: "Pluggable order types", file: "docs/PLUGINS-DESIGN.md" },
+      { slug: "write-an-order-type", nav: "Write an order type", file: "docs/ORDER-TYPES.md" },
       { slug: "extending-the-vault", readme: ["Extending the vault"] },
       { slug: "mainnet", nav: "Go to mainnet", file: "docs/MAINNET-CHECKLIST.md" },
       { slug: "gate-check", nav: "Template gate check", readme: ["Template gate check"] },
@@ -50,7 +50,8 @@ export const groups = [
     dir: "reference",
     title: "Reference",
     pages: [
-      { slug: "contract-api", title: "Contract API", generate: "natspec" },
+      // Generated in the template repo (scripts/gen-contract-api.mjs, checked fresh in its CI) from the NatSpec.
+      { slug: "contract-api", nav: "Contract API", file: "docs/CONTRACT-API.md" },
       { slug: "glossary", file: "docs/GLOSSARY.md" },
       { slug: "faq", file: "docs/FAQ.md" },
       { slug: "layout", nav: "Repository layout", readme: ["Layout"] },
@@ -64,28 +65,4 @@ export const unmapped = {
   readme: ["More documentation", "Licence"],
   // Assets, served next to the pages that use them.
   files: ["docs/demo.gif"],
-};
-
-/** The contract reference: these sources, in this order. */
-export const reference = {
-  include: [
-    "packages/foundry/contracts/OrderVault.sol",
-    "packages/foundry/contracts/interfaces/IOrderType.sol",
-    "packages/foundry/contracts/ordertypes/LimitOrderType.sol",
-    "packages/foundry/contracts/ordertypes/StopOrderType.sol",
-    "packages/foundry/contracts/ordertypes/TrailingStopType.sol",
-    "packages/foundry/contracts/libraries/MarketGuard.sol",
-    "packages/foundry/contracts/types/OrderTypes.sol",
-  ],
-  // Internal libraries (no external surface a caller uses) and the interfaces of contracts this repo does not own.
-  exclude: [
-    "packages/foundry/contracts/libraries/OrderCollection.sol",
-    "packages/foundry/contracts/libraries/PriceMath.sol",
-    "packages/foundry/contracts/libraries/Settlement.sol",
-    "packages/foundry/contracts/interfaces/IAggregatorV3.sol",
-    "packages/foundry/contracts/interfaces/IExchangeRate.sol",
-    "packages/foundry/contracts/interfaces/IHederaScheduleService.sol",
-    "packages/foundry/contracts/interfaces/IHederaTokenService.sol",
-    "packages/foundry/contracts/interfaces/ISaucerSwapV2.sol",
-  ],
 };
