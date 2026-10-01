@@ -56,8 +56,8 @@ npm run lint
 npm run types:check
 ```
 
-`NEXT_PUBLIC_LIVE_DEMO_URL` sets the navbar's "Live demo" link; without it, the link goes to the testnet vault on
-HashScan, as the template's README names it.
+"Live demo" and "See it on testnet" open the template's frontend on Hedera testnet (`lib/site.ts`);
+`NEXT_PUBLIC_LIVE_DEMO_URL` overrides it.
 
 ## Licence
 

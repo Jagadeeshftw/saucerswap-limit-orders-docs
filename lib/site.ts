@@ -7,8 +7,8 @@ export const site = {
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://limit-orders.0xo.in",
   github: "https://github.com/Jagadeeshftw/saucerswap-limit-orders",
   docsRepo: "https://github.com/Jagadeeshftw/saucerswap-limit-orders-docs",
-  /** The deployed testnet app; until there is one, the testnet vault on HashScan as named by the README. */
-  liveDemo: process.env.NEXT_PUBLIC_LIVE_DEMO_URL || sourceInfo.vaultUrl || "https://hashscan.io/testnet",
+  /** The template's frontend on Hedera testnet (Vercel project saucerswap-limit-orders-demo, built from main). */
+  liveDemo: process.env.NEXT_PUBLIC_LIVE_DEMO_URL || "https://saucerswap-limit-orders-demo.vercel.app",
   createCommand: "npm create scaffold-hbar@latest my-app -- --template Jagadeeshftw/saucerswap-limit-orders",
   source: sourceInfo,
 };

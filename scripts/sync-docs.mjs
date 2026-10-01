@@ -21,7 +21,7 @@ const ASSETS = path.join(ROOT, "public/source");
 const commit = fetchPinned();
 console.log(`source: ${PIN.ref} = ${commit.sha} (${commit.date}) from ${commit.remote}`);
 
-const { pages, assets, readmeSections } = cutPages();
+const { pages, assets } = cutPages();
 
 fs.rmSync(OUT, { recursive: true, force: true });
 for (const p of pages) {
@@ -41,9 +41,6 @@ for (const a of assets) fs.copyFileSync(path.join(SRC, a), path.join(ASSETS, pat
 const rendered = await renderDiagrams(pages.flatMap((p) => mermaidBlocks(p.body)));
 fs.writeFileSync(path.join(ROOT, "content/diagrams.json"), JSON.stringify(await writeDiagramFiles(rendered, path.join(ROOT, "public/diagrams")), null, 1) + "\n");
 
-// The testnet vault on HashScan, as the README's "See it work on testnet" names it.
-const vault = readmeSections.find((s) => s.heading === "See it work on testnet")?.body.match(/\]\((https:\/\/hashscan\.io\/testnet\/contract\/[^)]+)\)/)?.[1];
-
 fs.writeFileSync(
   path.join(ROOT, "content/source.json"),
   JSON.stringify(
@@ -52,7 +49,6 @@ fs.writeFileSync(
       ref: PIN.ref,
       sha: commit.sha,
       date: commit.date,
-      vaultUrl: vault ?? null,
       pages: pages.map((p) => ({ url: p.url, title: p.title, sources: p.sources.map(({ body, ...s }) => s) })),
     },
     null,
