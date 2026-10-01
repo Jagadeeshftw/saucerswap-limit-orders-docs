@@ -7,6 +7,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
+import subsetFont from "subset-font";
 
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(import.meta.dirname, "../..");
@@ -84,19 +85,33 @@ export function diagramHash(code) {
 }
 
 const cachePath = (hash) => path.join(CACHE, `${hash}.json`);
-const woff = (w) => fs.readFileSync(require.resolve(`@fontsource/montserrat/files/montserrat-latin-${w}-normal.woff2`)).toString("base64");
+const woffFile = (w) => fs.readFileSync(require.resolve(`@fontsource/montserrat/files/montserrat-latin-${w}-normal.woff2`));
+const woff = (w) => woffFile(w).toString("base64");
 
 /**
  * Write each diagram as a standalone SVG file per theme (served as a lazy <img>, so pages carry no SVG markup),
- * with the Montserrat it was measured in embedded, since an SVG image cannot use the page's fonts.
- * Returns { hash: { width, height, alt } }.
+ * with the Montserrat it was measured in embedded (cut down to the glyphs it uses), since an SVG image cannot
+ * use the page's fonts. Returns { hash: { width, height, alt } }.
  */
-export function writeDiagramFiles(rendered, dir) {
+export async function writeDiagramFiles(rendered, dir) {
   fs.rmSync(dir, { recursive: true, force: true });
   fs.mkdirSync(dir, { recursive: true });
-  const fontCss = [400, 600].map((w) => `@font-face{font-family:Montserrat;font-weight:${w};src:url(data:font/woff2;base64,${woff(w)}) format("woff2")}`).join("");
   const out = {};
   for (const [hash, d] of Object.entries(rendered)) {
+    const text = (d.light + d.dark)
+      .replace(/<style[\s\S]*?<\/style>/g, "")
+      .replace(/<[^>]+>/g, "")
+      .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+      .replace(/&(amp|lt|gt|quot|apos);/g, (_, e) => ({ amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" })[e]);
+    const glyphs = [...new Set(text + " …")].join("");
+    const fontCss = (
+      await Promise.all(
+        [400, 600].map(async (w) => {
+          const font = await subsetFont(woffFile(w), glyphs, { targetFormat: "woff2" });
+          return `@font-face{font-family:Montserrat;font-weight:${w};src:url(data:font/woff2;base64,${font.toString("base64")}) format("woff2")}`;
+        }),
+      )
+    ).join("");
     const vb = d.light.match(/viewBox="([-\d.]+) ([-\d.]+) ([\d.]+) ([\d.]+)"/);
     const width = Math.ceil(Number(vb[3]));
     const height = Math.ceil(Number(vb[4]));

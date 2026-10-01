@@ -13,7 +13,8 @@ export default async function Page(props: PageProps<"/[...slug]">) {
   const { ref, sha } = site.source;
 
   return (
-    <DocsPage toc={page.data.toc}>
+    // The rail lists h2 and h3; the Contract API's ~40 function headings stay in the page, not the rail.
+    <DocsPage toc={page.data.toc.filter((item) => item.depth <= 3)}>
       <DocsTitle>{page.data.heading}</DocsTitle>
       <DocsBody>
         <MDX components={getMDXComponents()} />

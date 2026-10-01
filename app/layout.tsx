@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { RootProvider } from "fumadocs-ui/provider/next";
-import { IBM_Plex_Mono, Montserrat } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import { site } from "@/lib/site";
 import "./global.css";
 
 const sans = Montserrat({ subsets: ["latin"], variable: "--font-montserrat", display: "swap" });
-const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-plex-mono", display: "swap" });
 
 const description =
   "Docs for the saucerswap-limit-orders Scaffold-HBAR template: keeperless limit, stop and trailing-stop orders on SaucerSwap V2, run by the Hedera Schedule Service.";
@@ -28,7 +27,7 @@ export const viewport: Viewport = {
 
 export default function Layout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`} suppressHydrationWarning>
+    <html lang="en" className={sans.variable} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col">
         <RootProvider search={{ options: { type: "static" } }}>{children}</RootProvider>
       </body>
